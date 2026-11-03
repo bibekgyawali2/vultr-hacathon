@@ -1,0 +1,150 @@
+{
+  "title": "Detonation Chamber: choose the visual world",
+  "question": "The roll assigned Screening Console. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Screening Console",
+      "kicker": "THE ROLL",
+      "lineage": "Checkpoint baggage X-ray consoles: false-colour material imaging",
+      "thesis": "The artifact goes through the tunnel; its behaviour comes out as an X-ray, coloured by what it touched.",
+      "palette": ["#f7f7f4", "#e8871e", "#3f9e4a", "#2b5fb8", "#141414", "#d7261e"],
+      "materials": ["translucent false-colour layers that multiply where they overlap", "X-ray air-white ground", "screener's red threat box"],
+      "viewport": "A single input line on top; beneath it a full-width scan strip that grows left to right as events arrive (orange = files, green = processes, blue = network, black = blocked), red boxes around contained attempts; ruled event log and verdict below.",
+      "risk": "If the colour roles drift into decoration the strip turns into a pretty chart; every band must be one real event.",
+      "raised": [
+        {"from": "challenger-high-density", "raise": "Panels tile edge to edge on hairline rules: no floating cards, no shadows, no whitespace padding."},
+        {"from": "challenger-datamatics", "raise": "One tabular monospace at data density for every number, timestamp and path; no decorative grey."},
+        {"from": "challenger-labanotation", "raise": "A band's length is its exact duration on the time axis; nothing is drawn longer for emphasis."},
+        {"from": "challenger-streaming-wall", "raise": "Selecting an event dims every other layer in the strip, so the selection reads at once."}
+      ],
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "chamber status bar", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "input: npm / pypi / repo / url + detonate", "x": 0, "y": 1, "w": 12, "h": 1},
+        {"label": "scan strip (false-colour behaviour image)", "x": 0, "y": 2, "w": 12, "h": 3, "accent": true},
+        {"label": "event log", "x": 0, "y": 5, "w": 7, "h": 5},
+        {"label": "verdict + IOCs", "x": 7, "y": 5, "w": 5, "h": 2},
+        {"label": "agent notes", "x": 7, "y": 7, "w": 5, "h": 3}
+      ]}
+    },
+    {
+      "id": "model-pick",
+      "label": "Process Monitor Trace",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Sysinternals Procmon / Wireshark packet lists",
+      "thesis": "The tool analysts already live in: one dense, filterable row per syscall, with blocked rows highlighted.",
+      "palette": ["#ffffff", "#1d1d1d", "#d9d9d9", "#c62828"],
+      "materials": ["dense rows", "column filters", "row highlight rules"],
+      "viewport": "Input on top, a full-height event table with columns time / class / operation / path / result, a verdict pane docked right.",
+      "risk": "Also where most runs in this category land: instantly trusted, instantly forgettable on a demo stage.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "input", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "filters", "x": 0, "y": 1, "w": 9, "h": 1},
+        {"label": "event table", "x": 0, "y": 2, "w": 9, "h": 8, "accent": true},
+        {"label": "verdict pane", "x": 9, "y": 1, "w": 3, "h": 9}
+      ]}
+    },
+    {
+      "id": "challenger-gate-board",
+      "label": "Gate Board",
+      "verdict": "competitive",
+      "lineage": "Airport departure boards and segmented boarding passes",
+      "thesis": "Every probe is a row on a live board; when something gets blocked the row changes state in place and stays lit until you've seen it.",
+      "palette": ["#f2f2ee", "#111111", "#7a7a7a", "#ffb000"],
+      "materials": ["fixed-column board", "tabular figures", "segmented pass with a scannable block"],
+      "viewport": "A live board of probes ranked by time; the verdict prints as a segmented pass with the IOCs as its scannable block.",
+      "case": "Strong on clarity (held alert state is exactly the containment moment); weaker on audience identification: analysts don't think in flights.",
+      "risk": "The pass metaphor can feel like a costume if the segments don't carry real fields.",
+      "hero": "https://impeccable.style/worlds/cards/vernacular-ephemera-boarding-pass-and-gate-board-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/vernacular-ephemera-boarding-pass-and-gate-board.webp",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "input", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "live probe board", "x": 0, "y": 1, "w": 8, "h": 9, "accent": true},
+        {"label": "verdict pass", "x": 8, "y": 1, "w": 4, "h": 5},
+        {"label": "agent notes", "x": 8, "y": 6, "w": 4, "h": 4}
+      ]}
+    },
+    {
+      "id": "challenger-high-density",
+      "label": "High-Density Mosaic",
+      "verdict": "declined",
+      "lineage": "Japanese high-density portals",
+      "thesis": "Every signal packed into ruled modules on one screen.",
+      "palette": ["#ffffff", "#111111", "#d0021b", "#e5e5e5"],
+      "materials": ["hairline module borders", "small header tabs"],
+      "viewport": "A mosaic of ruled modules: files, network, processes, verdict, notes.",
+      "case": "Density helps depth but buries the two-second verdict.",
+      "kept": "Hairline-ruled panels with no whitespace inflation.",
+      "risk": "Overwhelms the developer reader.",
+      "hero": "https://impeccable.style/worlds/cards/japanese-high-density-web-hero.webp"
+    },
+    {
+      "id": "challenger-datamatics",
+      "label": "Datamatics Field",
+      "verdict": "declined",
+      "lineage": "Ikeda data-sublime installations",
+      "thesis": "The run as a strobing black-and-white barcode field.",
+      "palette": ["#000000", "#ffffff"],
+      "materials": ["barcode bars", "sine lattice", "monospace numerics"],
+      "viewport": "A full-frame bar field with numeric margins.",
+      "case": "Spectacular, but evidence becomes texture; analysts can't read it.",
+      "kept": "Total commitment to a single tabular mono at data density.",
+      "risk": "Strobing hurts legibility and accessibility.",
+      "hero": "https://impeccable.style/worlds/cards/ikeda-datamatics-hero.webp"
+    },
+    {
+      "id": "challenger-labanotation",
+      "label": "Movement Score",
+      "verdict": "declined",
+      "lineage": "Labanotation dance scores",
+      "thesis": "Event classes as columns flanking a centre staff, time running upward.",
+      "palette": ["#ffffff", "#000000", "#bdbdbd"],
+      "materials": ["shaded blocks", "centre staff"],
+      "viewport": "A vertical score with files left, network right.",
+      "case": "Elegant, but nobody in security reads a score.",
+      "kept": "Length equals exact duration.",
+      "risk": "Pure novelty to this audience.",
+      "hero": "https://impeccable.style/worlds/cards/notation-diagram-systems-labanotation-hero.webp"
+    },
+    {
+      "id": "challenger-streaming-wall",
+      "label": "Title Wall",
+      "verdict": "declined",
+      "lineage": "Streaming catalogue rows",
+      "thesis": "Past detonations as poster rows.",
+      "palette": ["#111111", "#ffffff", "#e50914"],
+      "materials": ["poster tiles", "focus lift"],
+      "viewport": "Rows of past runs; focus expands one.",
+      "case": "Browsing is not the job; triage is.",
+      "kept": "Focus dims everything else.",
+      "risk": "Entertainment register for a forensic tool.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-streaming-title-card-wall-hero.webp"
+    },
+    {
+      "id": "challenger-guide-map",
+      "label": "Guide Map",
+      "verdict": "declined",
+      "lineage": "Zoo and gardens guide maps",
+      "thesis": "The sandbox as a coloured map of zones.",
+      "palette": ["#8ed462", "#f5f1e4", "#2c2e2a", "#ff705d"],
+      "materials": ["flat colour lobes", "capsule controls"],
+      "viewport": "A swelling lobe per zone: files, network, processes.",
+      "case": "Playful register undercuts a forensic verdict.",
+      "kept": "Flat unmodulated colour: no gradients, no glow.",
+      "risk": "Reads as a toy.",
+      "hero": "https://impeccable.style/worlds/cards/aww2-zoo-gardens-guide-map-hero.webp"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code"},
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "The security-dashboard default: dark ground, KPI tiles, severity chips, a log panel.",
+    "palette": ["#0b0f14", "#e6edf3", "#22c55e", "#ef4444"],
+    "materials": ["dark cards", "severity badges", "terminal panel"],
+    "viewport": "Sidebar nav, KPI tiles across the top, terminal and findings cards below.",
+    "risk": "Indistinguishable from every other security demo at the hackathon."
+  },
+  "steer": true
+}

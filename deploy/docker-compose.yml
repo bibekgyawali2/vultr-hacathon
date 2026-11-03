@@ -1,0 +1,23 @@
+# Containerized deploy (Docker-out-of-Docker). The host script
+# deploy/setup-vultr.sh (systemd) is the recommended path; use this if you
+# prefer running the control-plane itself as a container.
+#
+#   docker build -t dc-sandbox:latest ../sandbox        # build sandbox image on host first
+#   docker compose -f deploy/docker-compose.yml up --build
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      # Artifact dirs must exist at the same path on host and in this container.
+      - DC_WORK_DIR=/opt/dc-work
+      - VULTR_INFERENCE_API_KEY=${VULTR_INFERENCE_API_KEY:-}
+      - VULTR_INFERENCE_BASE=${VULTR_INFERENCE_BASE:-https://api.vultrinference.com/v1}
+      - VULTR_INFERENCE_MODEL=${VULTR_INFERENCE_MODEL:-llama-3.3-70b-instruct-fp8}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock   # spawn sibling sandbox containers
+      - /opt/dc-work:/opt/dc-work                    # shared artifact path (host == container)
+    restart: unless-stopped

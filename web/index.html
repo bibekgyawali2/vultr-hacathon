@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Detonation Chamber</title>
+  <meta name="description" content="Detonate untrusted packages, repos and URLs in a sealed sandbox. Watch what they do. Get a verdict." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="statusbar" id="statusbar">
+    <div class="wordmark">
+      <span class="mark" aria-hidden="true"></span>
+      <span>DETONATION&nbsp;CHAMBER</span>
+    </div>
+    <dl class="status" id="status">
+      <div><dt>chamber</dt><dd id="st-chamber">sealed</dd></div>
+      <div><dt>runtime</dt><dd id="st-runtime">—</dd></div>
+      <div><dt>egress</dt><dd id="st-egress">—</dd></div>
+      <div><dt>inference</dt><dd id="st-inference">—</dd></div>
+    </dl>
+  </header>
+
+  <main>
+    <section class="console" aria-label="Submit an artifact">
+      <form id="form" class="submit" autocomplete="off">
+        <span class="kindtag" id="kindtag">auto</span>
+        <input id="target" name="target" class="field" spellcheck="false"
+               placeholder="npm:left-pad · pypi:requests · github.com/owner/repo · https://… · demo:exfil"
+               aria-label="Artifact to detonate" />
+        <button class="detonate" id="detonate" type="submit">
+          <span>Detonate</span>
+        </button>
+      </form>
+      <div class="hints">
+        <button class="chip" data-fill="demo:clean">demo:clean</button>
+        <button class="chip chip-hot" data-fill="demo:exfil">demo:exfil</button>
+        <button class="chip chip-hot" data-fill="demo:phish">demo:phish</button>
+        <span class="hint-note">Live jobs run in a sealed container. Demo jobs replay a labelled synthetic trace.</span>
+      </div>
+    </section>
+
+    <section class="strip-wrap" aria-label="Behaviour scan">
+      <div class="strip-head">
+        <h2 id="strip-title">Scan strip</h2>
+        <div class="legend" id="legend">
+          <span class="lg" data-k="file"><i></i>filesystem</span>
+          <span class="lg" data-k="process"><i></i>process</span>
+          <span class="lg" data-k="network"><i></i>network</span>
+          <span class="lg" data-k="blocked"><i></i>blocked</span>
+        </div>
+        <span class="clock" id="clock"></span>
+      </div>
+      <div class="strip" id="strip" role="img" aria-label="Timeline of observed sandbox events">
+        <div class="lanes" id="lanes"></div>
+        <div class="axis" id="axis"></div>
+        <div class="strip-empty" id="stripEmpty">
+          <p>The chamber is sealed and idle.</p>
+          <p class="sub">Submit an artifact to detonate it under observation. Events paint here as they happen — <span class="o">filesystem</span>, <span class="g">process</span>, <span class="b">network</span>, and anything the sandbox <span class="r">contains</span>.</p>
+        </div>
+      </div>
+      <div class="synthetic-banner" id="synthBanner" hidden>SYNTHETIC REPLAY — labelled demo trace, not a live run</div>
+    </section>
+
+    <section class="lower">
+      <div class="log-panel" aria-label="Event log">
+        <div class="panel-head"><h2>Event log</h2><span id="logcount" class="count">0</span></div>
+        <div class="log-cols"><span>t+</span><span>class</span><span>op</span><span>target</span><span>result</span></div>
+        <ol class="log" id="log"></ol>
+      </div>
+
+      <aside class="verdict-col">
+        <div class="verdict-panel" id="verdictPanel" data-label="pending">
+          <div class="panel-head"><h2>Verdict</h2><span class="count" id="riskScore">—</span></div>
+          <div class="verdict-body">
+            <div class="label-row">
+              <span class="label-dot" id="labelDot"></span>
+              <span class="label-text" id="labelText">pending</span>
+            </div>
+            <p class="headline" id="headline">Awaiting detonation.</p>
+            <div class="meter" aria-hidden="true"><span id="meterFill"></span></div>
+            <ul class="reasons" id="reasons"></ul>
+            <div class="iocs" id="iocsWrap" hidden>
+              <div class="panel-head mini"><h3>Indicators</h3><button class="copy" id="copyIocs">copy</button></div>
+              <ul class="ioc-list" id="iocs"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="agent-panel" aria-label="Agent notes">
+          <div class="panel-head"><h2>Agent</h2><span class="agent-src" id="agentSrc"></span></div>
+          <p class="agent-plan" id="agentPlan">Idle.</p>
+          <p class="agent-summary" id="agentSummary" hidden></p>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <div class="event-detail" id="eventDetail" hidden aria-live="polite"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
