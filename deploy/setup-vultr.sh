@@ -84,6 +84,12 @@ EOF
 systemctl daemon-reload
 systemctl enable --now detonation-chamber
 
+# The Vultr Ubuntu image ships with ufw active (SSH only); open the app port.
+if command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -q active; then
+  ufw allow "${PORT}/tcp" || true
+  ufw reload || true
+fi
+
 IP=$(curl -fsS https://ipinfo.io/ip 2>/dev/null || echo "<your-vultr-ip>")
 echo ""
 echo "============================================================"
