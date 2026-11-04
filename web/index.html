@@ -23,6 +23,7 @@
       <div><dt>inference</dt><dd id="st-inference">·</dd></div>
     </dl>
     <nav class="topnav">
+      <a href="#activity">Activity</a>
       <a href="#about">How it works</a>
       <a href="https://github.com/bibekgyawali2/vultr-hacathon" target="_blank" rel="noopener">GitHub ↗</a>
     </nav>
@@ -45,9 +46,11 @@
         </button>
       </form>
       <div class="hints">
-        <button class="chip" data-fill="demo:clean">demo:clean</button>
+        <button class="chip chip-hot" data-fill="demo:apt">demo:apt</button>
         <button class="chip chip-hot" data-fill="demo:exfil">demo:exfil</button>
         <button class="chip chip-hot" data-fill="demo:phish">demo:phish</button>
+        <button class="chip chip-hot" data-fill="demo:miner">demo:miner</button>
+        <button class="chip" data-fill="demo:clean">demo:clean</button>
         <span class="hint-note">Live jobs run in a sealed container. Demo jobs replay a labelled synthetic trace.</span>
       </div>
     </section>
@@ -72,6 +75,18 @@
         </div>
       </div>
       <div class="synthetic-banner" id="synthBanner" hidden>SYNTHETIC REPLAY · labelled demo trace, not a live run</div>
+    </section>
+
+    <section class="console-feed" aria-label="Live console">
+      <div class="feed-head">
+        <span class="feed-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="feed-title">live console</span>
+        <span class="feed-status" id="feedStatus">idle</span>
+      </div>
+      <div class="feed-body" id="feed">
+        <div class="feed-line dim">detonation-chamber · sealed sandbox syscall monitor · gVisor runsc</div>
+        <div class="feed-prompt" id="feedPrompt"><span class="ps1">chamber@sandbox:~$</span> <span class="cursor">▋</span></div>
+      </div>
     </section>
 
     <section class="lower">
@@ -105,6 +120,26 @@
           <p class="agent-summary" id="agentSummary" hidden></p>
         </div>
       </aside>
+    </section>
+
+    <section class="telemetry" id="activity" aria-label="Chamber activity">
+      <div class="panel-head"><h2>Chamber activity</h2><span class="count" id="statUpdated">—</span></div>
+      <ul class="stat-grid" id="statGrid"></ul>
+      <div class="tele-cols">
+        <div class="tele-block">
+          <div class="panel-head mini"><h3>Verdict distribution</h3></div>
+          <div class="vbars" id="vbars"></div>
+        </div>
+        <div class="tele-block">
+          <div class="panel-head mini"><h3>Top indicators observed</h3></div>
+          <ul class="top-iocs" id="topIocs"></ul>
+        </div>
+      </div>
+      <div class="history">
+        <div class="panel-head mini"><h3>Recent detonations</h3><span class="count" id="histCount"></span></div>
+        <div class="hist-cols"><span>when</span><span>target</span><span>verdict</span><span>risk</span><span>canary</span><span>blocked</span><span>report</span></div>
+        <ol class="hist" id="hist"></ol>
+      </div>
     </section>
 
     <section class="about" id="about" aria-label="How it works">
