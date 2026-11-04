@@ -1,37 +1,32 @@
 # Detonation Chamber
 
-**Hand an untrusted package, repo, or URL to an AI agent. It detonates the
-artifact inside a sealed, disposable sandbox, watches what it actually does, and
-returns a verdict backed by observed behaviour — with every escape attempt
-contained and recorded.**
+Run an untrusted npm/PyPI package, GitHub repo, or URL inside a sealed,
+disposable sandbox, watch what it does, and get a verdict backed by observed
+behaviour. Every escape attempt is contained and recorded.
 
-Built for the Vultr **Agent Rush** hackathon, track **Blast Radius Zero**
-(containment-first). Live build Nov 3–8 2026.
+Built for the Vultr Agent Rush hackathon (track: Blast Radius Zero). Live build
+Nov 3–8 2026.
 
-![Detonation Chamber — a malicious package caught and contained](.impeccable/review/cover.png)
+![Detonation Chamber](.impeccable/review/cover.png)
 
 ---
 
-## Why it's different
+## How it's different
 
 Most scanners read code or check reputation lists. Detonation Chamber is
-**behavioural**: it runs the artifact under containment, plants **canary
-credentials** to bait it, and lets the agent decide what to probe next. The
-containment event *is* the evidence.
+behavioural: it runs the artifact under containment, plants canary credentials
+to bait it, and reports what it did.
 
-- **Catches what the code *does*, not how it looks.** An obfuscated payload still
-  has to read a file and open a socket to do damage — and that is exactly what we
-  observe with `strace`.
-- **Fail-closed by construction.** Code-execution jobs run with **no network
-  route out**. Every outbound connection attempt fails and is logged. Nothing
-  leaves the machine, even if the verdict is wrong.
-- **Evidence-first verdict.** Every point of the 0–100 risk score traces to a
-  concrete observed event; the agent's summary may never overturn it.
-- **Verifiable run record.** Every run exports a JSON report carrying the full
-  event list, the verdict, the sandbox runtime, `sandbox_destroyed`, and a
-  SHA-256 over the evidence so a report can't be silently edited (`↓ report`).
+- Catches what the code does, not how it looks. A payload still has to read a
+  file or open a socket; `strace` records both.
+- Fail-closed. Code-execution jobs run with no network route out, so every
+  outbound attempt fails and is logged.
+- Evidence-first verdict. Every point of the risk score traces to an observed
+  event; the agent summary never overturns it.
+- Verifiable report. Each run exports JSON with the events, verdict, runtime,
+  and a SHA-256 over the evidence.
 
-### What the chamber contains (all enforced, not assumed)
+### What the chamber contains
 
 | Threat | Containment |
 |--------|-------------|
@@ -47,7 +42,7 @@ containment event *is* the evidence.
 ## The containment moment (for the demo video)
 
 Three labelled, reproducible synthetic traces replay through the exact same
-pipeline and UI as a live run — so you can show the money shot on stage without
+pipeline and UI as a live run, so you can show containment on stage without
 shipping anything that behaves like malware:
 
 | Submit | Shows |
@@ -78,7 +73,7 @@ docker run --rm
 Inside, [`sandbox/runner.py`](sandbox/runner.py):
 
 1. **Plants canary credentials** (`~/.aws/credentials`, `~/.ssh/id_rsa`, `~/.env`,
-   `~/.git-credentials`, `~/.config/dc_wallet.txt`) — all inert, fake values a
+   `~/.git-credentials`, `~/.config/dc_wallet.txt`); all inert, fake values a
    normal installer never touches.
 2. **Runs the artifact under `strace`**, parsing `openat` / `connect` / `execve`
    into typed events: filesystem reads, process spawns, and network connects.
@@ -112,13 +107,13 @@ Single-page UI, no build step. Live events stream over Server-Sent Events.
 
 ## Vultr services used
 
-- **Vultr Cloud Compute** — the VM that hosts the app and runs every sandbox
+- **Vultr Cloud Compute**: the VM that hosts the app and runs every sandbox
   container. Provisioned end-to-end by [`deploy/setup-vultr.sh`](deploy/setup-vultr.sh).
-- **Vultr Serverless Inference** — OpenAI-compatible endpoint
+- **Vultr Serverless Inference**: OpenAI-compatible endpoint
   (`https://api.vultrinference.com/v1`) for the agent's analysis plan and the
   plain-English verdict summary. The product runs fully offline without a key
   (deterministic heuristic voice), so the demo never hard-depends on the network.
-- **Vultr API** (optional extension) — spin up a throwaway instance per
+- **Vultr API** (optional extension): spin up a throwaway instance per
   high-risk job; see "Roadmap".
 
 No GPUs required (none are available in this hackathon).
@@ -191,14 +186,14 @@ deploy/       setup-vultr.sh · Dockerfile · docker-compose.yml · .env.example
 
 ## Judging alignment
 
-- **Application of Technology** — real OS-level behavioural analysis (`strace`),
+- **Application of Technology**: real OS-level behavioural analysis (`strace`),
   gVisor isolation, fail-closed networking, canary baiting, SSRF defence,
   a hash-verifiable run record, a test suite, and Vultr inference.
-- **Business Value** — supply-chain triage, dependency vetting before merge, and
+- **Business Value**: supply-chain triage, dependency vetting before merge, and
   phishing-URL analysis for a SOC, in one console.
-- **Originality** — containment is the feature, not a checkbox; the X-ray
+- **Originality**: containment is the feature; the X-ray
   "Screening Console" makes behaviour legible at a glance.
-- **Presentation** — a two-second verdict over a one-scroll evidence trail, with
+- **Presentation**: a two-second verdict over a one-scroll evidence trail, with
   a reproducible containment moment for the video.
 
 ## Safety & scope
