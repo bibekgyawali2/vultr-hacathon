@@ -85,6 +85,60 @@ async def plan(target) -> str:
         return "Detonate in the sandbox and observe file, process, and network behaviour."
 
 
+PROBE_TOOLS = (
+    "list_dir(path)  — list a directory under /artifact\n"
+    "read_file(path) — show the first 4 KB of a file under /artifact\n"
+    "grep(pattern)   — search every file under /artifact for a string\n"
+    "finish()        — stop; you have enough to judge"
+)
+
+
+async def next_probe(target, summary: str, transcript: list[dict]) -> dict | None:
+    """Agentic step: given what dynamic analysis saw and the investigation so
+    far, the model chooses the single most useful next probe. Returns a parsed
+    action dict, or None to finish. The verdict stays deterministic; the agent
+    only decides *what to look at*."""
+    if not available():
+        return None
+    import json as _json
+    import re as _re
+    tr = "\n\n".join(
+        f"$ {t['action']}\n{(t['result'] or '(empty)')[:500]}"
+        for t in transcript[-4:])
+    prompt = (
+        f"Triaging a {target.type} artifact '{target.name}'.\n"
+        f"Dynamic analysis in the sandbox already observed: {summary}.\n\n"
+        f"You can now statically investigate the package contents with these "
+        f"read-only, sandboxed tools:\n{PROBE_TOOLS}\n\n"
+        f"Investigation so far:\n{tr}\n\n"
+        f"Pick the single most useful next action to decide if this artifact is "
+        f"malicious. Run at least one grep for a dangerous API (child_process, "
+        f"eval, base64, os.system, curl, crontab, chmod +x) before you finish, "
+        f"and read_file to confirm a hit. Finish once you can judge.\n"
+        f'Respond with ONLY one JSON object, e.g. '
+        f'{{"tool":"grep","arg":"child_process","why":"look for shell-outs"}} '
+        f'or {{"tool":"finish","why":"nothing suspicious in the source"}}.')
+    raw = ""
+    for _ in range(2):  # the reasoning model occasionally returns an empty turn
+        try:
+            raw = await _chat(prompt, max_tokens=220)
+            break
+        except Exception:
+            continue
+    if not raw:
+        return None
+    m = _re.search(r"\{.*\}", raw, _re.S)
+    if not m:
+        return None
+    try:
+        obj = _json.loads(m.group(0))
+    except Exception:
+        return None
+    if obj.get("tool") not in ("list_dir", "read_file", "grep", "finish"):
+        return None
+    return obj
+
+
 async def summarize(target, verdict, top_events: list[str]) -> str:
     if not available():
         return verdict.headline + " " + " ".join(verdict.reasons[:2])

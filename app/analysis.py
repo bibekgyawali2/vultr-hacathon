@@ -27,9 +27,16 @@ def score(events: list[Event]) -> Verdict:
     sensitive_reads = 0
     cred_forms = 0
     cross_post = False
+    static_hits = 0
+    static_patterns: set[str] = set()
 
     for e in events:
         det = e.detail or {}
+        if det.get("static_risk"):
+            static_hits += 1
+            for p in det.get("patterns", []):
+                static_patterns.add(p)
+            continue
         if e.kind == Kind.FILE and det.get("canary"):
             canary_hits += 1
             add_ioc("credential", e.target, "canary credential accessed")
@@ -78,6 +85,10 @@ def score(events: list[Event]) -> Verdict:
     if egress_ok and not cross_post:
         pts += min(10, 2 * egress_ok)
         v.reasons.append(f"Made {egress_ok} outbound request(s) during analysis.")
+    if static_patterns:
+        pts += min(15, 5 * len(static_patterns))
+        pats = ", ".join(sorted(static_patterns)[:5])
+        v.reasons.append(f"Agent found high-risk code pattern(s) in the source ({pats}).")
 
     v.score = max(0, min(100, pts))
     if v.score >= 60:

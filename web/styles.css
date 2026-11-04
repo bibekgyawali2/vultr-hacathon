@@ -118,6 +118,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 0 24px 0; }
 .kindtag[data-k="github"] { color: var(--proc);   }
 .kindtag[data-k="url"]    { color: var(--net);    }
 .kindtag[data-k="demo"]   { color: var(--threat); }
+.kindtag[data-k="probe"]  { color: var(--proc); }
 .field {
   flex: 1; border: 0; background: var(--film);
   padding: 20px 18px; font-size: 17px; color: var(--ink);
@@ -144,6 +145,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 0 24px 0; }
 .chip:hover { border-color: var(--ink); color: var(--ink); }
 .chip-hot { border-color: #efcdb0; color: #b4600f; }
 .chip-hot:hover { border-color: var(--threat); color: var(--threat); }
+.chip-live { border-color: #bfe0c7; color: var(--proc); }
+.chip-live:hover { border-color: var(--proc); color: var(--proc); }
 .hint-note { font-size: 12.5px; color: var(--ink-3); margin-left: auto; }
 
 /* ---- scan strip (the signature) ----------------------------------------- */
@@ -267,6 +270,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 0 24px 0; }
 .feed-line.k-network .fv { color: var(--t-blue); }
 .feed-line.k-system      { color: var(--t-dim); }
 .feed-line.k-plan        { color: var(--t-blue); }
+.feed-line.k-agent       { color: #8fd3c8; }
+.feed-line.k-agent .fv   { color: #8fd3c8; }
 .feed-line.k-blocked     { color: var(--t-red); font-weight: 600; }
 .feed-line .tag-canary   { color: var(--t-red); font-weight: 600; }
 .feed-line .tag-blocked  { color: var(--t-red); font-weight: 600; }

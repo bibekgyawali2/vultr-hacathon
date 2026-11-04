@@ -104,6 +104,9 @@ def parse_target(raw: str) -> Target:
         return Target(raw=s, type="pypi", name=name, version=ver)
     if low.startswith("demo:"):
         return Target(raw=s, type="demo", name=s.split(":", 1)[1])
+    if low.startswith("probe:"):
+        # Live self-tests of the chamber (real sandbox run, no synthetic data).
+        return Target(raw=s, type="exec", name=s.split(":", 1)[1].strip().lower())
     if "github.com/" in low:
         slug = low.split("github.com/", 1)[1].strip("/")
         slug = "/".join(slug.split("/")[:2])

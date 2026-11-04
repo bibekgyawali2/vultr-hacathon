@@ -42,6 +42,7 @@ function detectKind(v) {
   if (s.startsWith("npm:")) return "npm";
   if (s.startsWith("pypi:") || s.startsWith("pip:")) return "pypi";
   if (s.startsWith("demo:")) return "demo";
+  if (s.startsWith("probe:")) return "probe";
   if (s.startsWith("http://") || s.startsWith("https://")) return "url";
   if (s.includes("github.com/")) return "github";
   if (s.split("/").length === 2 && !s.includes(" ")) return "github";
@@ -315,6 +316,11 @@ function feedEvent(ev) {
   if (ev.result === "blocked") tag = ' <span class="tag-blocked">✗ BLOCKED</span>';
   if (ev.kind === "system") {
     feedRaw(`<span class="ft">${t}</span> ${esc(ev.target)}${tag}`, "k-system");
+    return;
+  }
+  if (ev.kind === "agent") {
+    const why = ev.detail && ev.detail.why ? ` <span class="ft">— ${esc(ev.detail.why)}</span>` : "";
+    feedRaw(`<span class="ft">${t}</span> <span class="fv">[agent]</span> ${esc(ev.target)}${why}`, "k-agent");
     return;
   }
   feedRaw(`<span class="ft">${t}</span> <span class="fv">${esc(ev.op)}</span> ${esc(ev.target)}${tag}`,

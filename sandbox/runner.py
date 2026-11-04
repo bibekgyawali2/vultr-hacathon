@@ -221,6 +221,21 @@ def build_command() -> list[str]:
             return ["pip", "install", "--no-build-isolation", "."]
         return ["bash", "-lc", "ls -la"]
     if t == "exec":
+        name = os.environ.get("DC_NAME", "")
+        if name == "egress":
+            # Honest live containment test: try to reach real hosts. With
+            # --network none every connect() fails and strace records it.
+            return ["python3", "-c",
+                    "import socket\n"
+                    "for h in [('1.1.1.1',443),('8.8.8.8',53),('93.184.216.34',80)]:\n"
+                    "    try: socket.create_connection(h,3)\n"
+                    "    except Exception: pass\n"]
+        if name == "secrets":
+            # Live canary test: read the planted (inert) credential files so the
+            # file-access detector fires on real syscalls.
+            return ["bash", "-lc",
+                    f"cat {HOME}/.aws/credentials {HOME}/.ssh/id_rsa {HOME}/.env "
+                    f">/dev/null 2>&1; echo probe-done"]
         return ["bash", "-lc", os.environ.get("DC_CMD", "true")]
     return ["true"]
 

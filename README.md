@@ -26,6 +26,26 @@ to bait it, and reports what it did.
 - Verifiable report. Each run exports JSON with the events, verdict, runtime,
   and a SHA-256 over the evidence.
 
+### Where the agent acts
+
+The agent does the judgement work, not the scoring. After the dynamic run it
+investigates the package source one step at a time: it chooses what to `grep`
+for, decides which files to `read_file` to confirm a hit, and stops when it can
+judge. Each decision runs in a fresh read-only, network-free container and
+streams to the console. The scorer stays deterministic on purpose, so the same
+artifact always gets the same verdict; the agent decides *what to look at*, not
+what the score is.
+
+## Why it matters
+
+Open-source dependencies are the soft underbelly of modern software: a single
+malicious npm or PyPI release reaches thousands of machines through CI before
+anyone reviews it, and triage today is manual. Detonation Chamber turns raw
+sandbox behaviour into a ticket-ready verdict in seconds, for AppSec and SOC
+teams, for developers vetting a dependency before `npm install`, and as a CI
+gate on new or updated packages. AI is essential, not decorative: it reads the
+evidence, directs the investigation, and writes the analyst's summary.
+
 ### What the chamber contains
 
 | Threat | Containment |
@@ -187,28 +207,42 @@ deploy/       setup-vultr.sh · Dockerfile · docker-compose.yml · .env.example
 ## Judging alignment
 
 - **Application of Technology**: real OS-level behavioural analysis (`strace`),
-  gVisor isolation, fail-closed networking, canary baiting, SSRF defence,
-  a hash-verifiable run record, a test suite, and Vultr inference.
+  gVisor isolation, fail-closed networking, canary baiting, an agentic source
+  investigation, SSRF defence, a hash-verifiable run record, a test suite, and
+  Vultr inference.
 - **Business Value**: supply-chain triage, dependency vetting before merge, and
   phishing-URL analysis for a SOC, in one console.
-- **Originality**: containment is the feature; the X-ray
-  "Screening Console" makes behaviour legible at a glance.
+- **Originality**: the combination is the wedge: canary-baiting plus
+  containment-as-evidence plus a two-second verdict, with an agent that decides
+  what to investigate while the verdict stays reproducible.
 - **Presentation**: a two-second verdict over a one-scroll evidence trail, with
   a reproducible containment moment for the video.
 
 ## Safety & scope
 
-This is a **defensive** tool. It ships **no malware**: the demo traces are
-hand-authored event scripts (not executable payloads), and the canaries are
-inert fake values. Live analysis contains whatever you submit; it does not
-weaponise anything. MIT-licensed, original work.
+This is a defensive tool. It ships no malware: the `demo:*` traces are
+hand-authored event scripts (not executable payloads), the `probe:*` self-tests
+run real but harmless commands (a connection that gets blocked, reading our own
+inert canary files), and the canaries are fake values. Live analysis contains
+whatever you submit; it does not weaponise anything. MIT-licensed.
+
+## Design notes
+
+- The verdict is deterministic by design, so a report is reproducible and
+  auditable; the LLM directs the investigation and writes the summary, it does
+  not set the score.
+- `strace` needs `CAP_SYS_PTRACE`; it is the only capability added back, and
+  ptrace is scoped to the container's own processes.
+- Single-node by design for the demo (in-memory jobs, SQLite history).
+- URL analysis is a GET-only fetcher with SSRF defence, not a full headless
+  browser (that is on the roadmap).
 
 ## Roadmap
 
 - Per-job throwaway Vultr instance via the Vultr API for the highest-risk
   artifacts (true blast-radius isolation at the VM level).
 - Full headless-browser URL detonation (screenshots + DOM) via Playwright.
-- Persisted run history and shareable report links.
+- Shareable report links and team workspaces.
 
 ## License
 
