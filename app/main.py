@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import agent, sandbox
+from . import agent, sandbox, store
 from .jobs import manager
 
 WEB = Path(__file__).resolve().parent.parent / "web"
@@ -51,14 +51,28 @@ async def detonate(req: DetonateReq):
             "synthetic": job.synthetic}
 
 
+@app.get("/api/stats")
+async def stats():
+    return store.stats()
+
+
+@app.get("/api/history")
+async def history(limit: int = 20):
+    return {"runs": store.recent(min(max(limit, 1), 100))}
+
+
 @app.get("/api/report/{job_id}")
 async def report(job_id: str):
-    job = manager.get(job_id)
-    if not job:
-        raise HTTPException(404, "unknown job")
     from fastapi.responses import JSONResponse
+    job = manager.get(job_id)
+    if job:
+        data = job.report()
+    else:
+        data = store.get(job_id)  # fall back to persisted history
+        if not data:
+            raise HTTPException(404, "unknown job")
     return JSONResponse(
-        job.report(),
+        data,
         headers={"Content-Disposition":
                  f'attachment; filename="detonation-{job_id}.json"'})
 

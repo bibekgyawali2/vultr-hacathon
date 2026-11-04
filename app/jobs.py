@@ -13,7 +13,7 @@ import time
 import uuid
 from datetime import datetime, timezone
 
-from . import agent, analysis, demo, sandbox
+from . import agent, analysis, demo, sandbox, store
 from .models import Event, Kind, Result, parse_target
 
 
@@ -88,6 +88,11 @@ class Job:
         # Live containers run with --rm, so the sandbox is gone once the run ends.
         self.sandbox_destroyed = self.target.type != "demo"
         self.status = "done"
+
+        try:
+            store.record(self)
+        except Exception:  # noqa: BLE001  (telemetry must never fail a run)
+            pass
 
         await self.push("verdict", {"verdict": self.verdict.to_dict(),
                                     "summary": self.summary})

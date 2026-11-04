@@ -16,3 +16,6 @@ __pycache__/
 # screenshots referenced by the README). Only transient caches are ignored.
 .impeccable/mocks/decision/
 .impeccable/build/
+
+# Runtime history DB
+data/
