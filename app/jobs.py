@@ -13,7 +13,7 @@ import time
 import uuid
 from datetime import datetime, timezone
 
-from . import agent, analysis, demo, sandbox, store
+from . import agent, analysis, demo, intel, sandbox, store
 from .models import Event, Kind, Result, parse_target
 
 
@@ -27,6 +27,7 @@ class Job:
         self.verdict = None
         self.summary = ""
         self.plan = ""
+        self.intel: dict = {}
         self.status = "queued"          # queued | running | done | error
         self.synthetic = self.target.type == "demo"
         self.sandbox_destroyed = False
@@ -81,6 +82,26 @@ class Job:
                                    "result": "error", "severity": 2})
 
         self.verdict = analysis.score(self.events)
+
+        # Threat intelligence: reputation, known CVEs, typosquat, capabilities,
+        # ATT&CK. Network lookups run in parallel and fail soft.
+        meta, vulns = None, []
+        try:
+            meta, vulns = await asyncio.wait_for(asyncio.gather(
+                intel.registry_metadata(self.target),
+                intel.osv_vulns(self.target)), timeout=12)
+        except Exception:  # noqa: BLE001
+            pass
+        typo = intel.typosquat(self.target)
+        flags = intel.reputation_flags(meta)
+        analysis.adjust_for_intel(self.verdict, typo, flags)
+        self.intel = {
+            "metadata": meta, "vulns": vulns, "typosquat": typo,
+            "reputation_flags": flags,
+            "capabilities": intel.capabilities(self.target, self.events),
+            "attack": intel.attack_mapping(self.events),
+        }
+
         top = [f"{e.kind.value}:{e.op} {e.target}"
                for e in self.events if e.severity >= 1][:12]
         self.summary = await agent.summarize(self.target, self.verdict, top)
@@ -95,7 +116,8 @@ class Job:
             pass
 
         await self.push("verdict", {"verdict": self.verdict.to_dict(),
-                                    "summary": self.summary})
+                                    "summary": self.summary,
+                                    "intel": self.intel})
         await self.push("status", {"status": "done",
                                    "sandbox_destroyed": self.sandbox_destroyed,
                                    "report_url": f"/api/report/{self.id}"})
@@ -123,6 +145,7 @@ class Job:
             "plan": self.plan,
             "verdict": self.verdict.to_dict() if self.verdict else None,
             "summary": self.summary,
+            "intel": self.intel,
             "event_count": len(events),
             "evidence_sha256": hashlib.sha256(canon).hexdigest(),
             "events": events,

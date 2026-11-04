@@ -109,6 +109,7 @@ function openStream(jobId) {
   es.addEventListener("verdict", (e) => {
     const d = JSON.parse(e.data);
     renderVerdict(d.verdict);
+    renderIntel(d.intel || {});
     $("agentSummary").hidden = false;
     $("agentSummary").textContent = d.summary;
   });
@@ -133,6 +134,7 @@ function resetRun() {
   $("reasons").innerHTML = ""; $("iocs").innerHTML = "";
   $("iocsWrap").hidden = true; $("synthBanner").hidden = true;
   $("reportBtn").hidden = true;
+  $("caps").hidden = true; $("attackWrap").hidden = true; $("intelPanel").hidden = true;
   $("stripEmpty").style.display = "none";
   $("agentSummary").hidden = true; $("agentPlan").textContent = "Planning…";
   $("eventDetail").hidden = true;
@@ -287,6 +289,74 @@ function renderVerdict(v) {
 function esc(s) {
   return String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// ---- threat intelligence --------------------------------------------------
+function renderIntel(intel) {
+  const caps = intel.capabilities || [];
+  const capEl = $("caps");
+  if (caps.length) {
+    capEl.hidden = false;
+    capEl.innerHTML = caps.map((c) => `<li class="${c.level}">${esc(c.label)}</li>`).join("");
+  } else { capEl.hidden = true; }
+
+  const attack = intel.attack || [];
+  const aw = $("attackWrap");
+  if (attack.length) {
+    aw.hidden = false;
+    $("attack").innerHTML = attack.map((a) =>
+      `<li><span class="tid">${esc(a.id)}</span><span class="tname">${esc(a.name)}</span>` +
+      `<span class="tev">${esc(a.evidence)}</span></li>`).join("");
+  } else { aw.hidden = true; }
+
+  const meta = intel.metadata, typo = intel.typosquat,
+        vulns = intel.vulns || [], flags = intel.reputation_flags || [];
+  const panel = $("intelPanel");
+  if (!meta && !typo && !vulns.length) { panel.hidden = true; return; }
+  panel.hidden = false;
+  $("intelSrc").textContent = meta ? meta.ecosystem + " registry" : "";
+
+  const typoEl = $("typo");
+  if (typo) {
+    typoEl.hidden = false;
+    typoEl.innerHTML = `⚠ Possible typosquat: <b>${esc(typo.suspect)}</b> is ${typo.distance} ` +
+      `edit(s) from <b>${esc(typo.similar_to)}</b>.`;
+  } else { typoEl.hidden = true; }
+
+  const rep = $("rep");
+  if (meta) {
+    const rows = [];
+    if (meta.age_days != null) rows.push(["age", fmtAge(meta.age_days)]);
+    if (meta.downloads_last_month != null) rows.push(["downloads", fmtNum(meta.downloads_last_month) + "/mo"]);
+    if (meta.versions) rows.push(["versions", String(meta.versions)]);
+    if (meta.maintainers && meta.maintainers.length) rows.push(["maintainers", esc(meta.maintainers.filter(Boolean).join(", "))]);
+    rows.push(["repository", meta.repository
+      ? `<a href="${esc(cleanRepo(meta.repository))}" target="_blank" rel="noopener">${esc(shortRepo(meta.repository))}</a>`
+      : '<span class="flag">none linked</span>']);
+    if (flags.length) rows.push(["flags", `<span class="flag">${esc(flags.join("; "))}</span>`]);
+    rep.innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd${k === "flags" || (k === "repository" && !meta.repository) ? ' class="flag"' : ""}>${v}</dd>`).join("");
+  } else { rep.innerHTML = ""; }
+
+  const vw = $("vulnsWrap");
+  if (vulns.length) {
+    vw.hidden = false;
+    $("vulnCount").textContent = `${vulns.length} via OSV`;
+    $("vulns").innerHTML = vulns.map((v) =>
+      `<li><span class="vid">${esc(v.id)}${v.severity ? " · " + esc(v.severity) : ""}</span>` +
+      `<span class="vsum">${esc(v.summary || "no summary")}</span></li>`).join("");
+  } else { vw.hidden = true; }
+}
+function fmtAge(d) {
+  if (d < 60) return d + " days";
+  if (d < 730) return Math.round(d / 30) + " months";
+  return (d / 365).toFixed(1) + " years";
+}
+function cleanRepo(u) {
+  return String(u).replace(/^git\+/, "").replace(/\.git$/, "").replace(/^git:\/\//, "https://");
+}
+function shortRepo(u) {
+  const m = String(u).match(/github\.com[/:]([^/]+\/[^/.]+)/);
+  return m ? m[1] : cleanRepo(u).replace(/^https?:\/\//, "").slice(0, 36);
 }
 
 // ---- live console feed ----------------------------------------------------
@@ -451,6 +521,27 @@ function renderFixture(name) {
       { type: "ip", value: "185.220.101.44", note: "blocked outbound connection" },
       { type: "domain", value: "collector.exfil-demo.invalid", note: "blocked outbound connection" },
     ],
+  });
+  renderIntel({
+    capabilities: [
+      { label: "reads credentials", level: "bad" },
+      { label: "attempts network egress", level: "bad" },
+      { label: "obfuscated code", level: "bad" },
+      { label: "runs install scripts", level: "warn" },
+      { label: "spawns processes", level: "warn" },
+      { label: "filesystem access", level: "info" },
+    ],
+    attack: [
+      { id: "T1552.001", name: "Credentials In Files", evidence: "read planted credential files" },
+      { id: "T1059", name: "Command and Scripting Interpreter", evidence: "spawned an interpreter/shell" },
+      { id: "T1027", name: "Obfuscated Files or Information", evidence: "obfuscation/encoding in source" },
+      { id: "T1041", name: "Exfiltration Over C2 Channel", evidence: "attempted outbound connection to external host" },
+    ],
+    metadata: { ecosystem: "npm", age_days: 6, downloads_last_month: 320, versions: 2,
+      maintainers: ["unverified-user"], repository: null },
+    reputation_flags: ["published only 6 day(s) ago", "low adoption (320 downloads/mo)", "no source repository linked"],
+    typosquat: { suspect: "reqeusts-helper", similar_to: "request", distance: 2 },
+    vulns: [],
   });
   $("agentSummary").hidden = false;
   $("agentSummary").textContent =

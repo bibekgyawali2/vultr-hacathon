@@ -102,7 +102,30 @@ def score(events: list[Event]) -> Verdict:
         v.reasons.append("No sensitive access, no egress attempts, no credential forms observed.")
     v.headline = {
         Label.MALICIOUS: "Malicious behaviour observed and contained.",
-        Label.SUSPICIOUS: "Suspicious behaviour — review the evidence below.",
+        Label.SUSPICIOUS: "Suspicious behaviour, review the evidence below.",
         Label.BENIGN: "No malicious behaviour observed in the sandbox.",
     }[v.label]
     return v
+
+
+def adjust_for_intel(v: Verdict, typosquat: dict | None,
+                     rep_flags: list[str] | None) -> None:
+    """Fold reputation signals into the verdict after behavioural scoring. A
+    typosquat is a strong malice indicator; reputation flags are a mild nudge."""
+    pts = v.score
+    if typosquat:
+        pts += 25
+        v.iocs.insert(0, IOC(type="package", value=typosquat["suspect"],
+                             note=f"one edit from '{typosquat['similar_to']}' (possible typosquat)"))
+        v.reasons.insert(0, f"Name is {typosquat['distance']} edit(s) from the popular "
+                            f"package '{typosquat['similar_to']}' — possible typosquat.")
+    if rep_flags:
+        pts += min(10, 4 * len(rep_flags))
+        v.reasons.append("Reputation signals: " + "; ".join(rep_flags) + ".")
+    v.score = max(0, min(100, pts))
+    if v.score >= 60:
+        v.label = Label.MALICIOUS
+    elif v.score >= 20:
+        v.label = Label.SUSPICIOUS
+    else:
+        v.label = Label.BENIGN

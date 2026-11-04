@@ -350,6 +350,45 @@ main { max-width: 1240px; margin: 0 auto; padding: 0 24px 0; }
 .verdict-panel[data-label="malicious"] .label-text { color: var(--malware); }
 .verdict-panel[data-label="malicious"] #meterFill { background: var(--malware); }
 
+/* capability badges */
+.caps { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.caps li {
+  font-family: var(--mono); font-size: 11px; padding: 3px 8px;
+  border: 1px solid var(--rule); color: var(--ink-2); white-space: nowrap;
+}
+.caps li.bad { border-color: #f0c9c6; color: var(--malware); background: #fdf3f2; }
+.caps li.warn { border-color: #efd9bf; color: var(--suspect); }
+.caps li.info { border-color: var(--rule); color: var(--ink-3); }
+
+/* MITRE ATT&CK */
+.attack { margin-top: 18px; }
+.attack-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.attack-list li { display: grid; grid-template-columns: 80px 1fr; gap: 10px; align-items: baseline; font-size: 12px; }
+.attack-list .tid { font-family: var(--mono); font-size: 11px; color: var(--net); font-weight: 600; }
+.attack-list .tname { color: var(--ink); }
+.attack-list .tev { grid-column: 2; color: var(--ink-3); font-size: 11px; }
+
+/* intelligence panel */
+.intel-panel { border-bottom: 1px solid var(--ink); }
+.intel-body { padding: 16px; }
+.typo {
+  padding: 10px 12px; margin-bottom: 14px; font-size: 12.5px;
+  border: 1px solid #f0c9c6; background: #fdf3f2; color: var(--malware);
+}
+.typo b { font-family: var(--mono); }
+.rep { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; font-size: 12.5px; }
+.rep dt { color: var(--ink-3); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
+.rep dd { margin: 0; font-family: var(--mono); color: var(--ink); word-break: break-all; }
+.rep dd.flag { color: var(--suspect); font-family: var(--sans); }
+.rep dd a { color: var(--net); text-decoration: none; }
+.rep dd a:hover { text-decoration: underline; }
+.vulns { margin-top: 16px; }
+.vuln-list { list-style: none; margin: 0; padding: 0; }
+.vuln-list li { padding: 7px 0; border-bottom: 1px solid var(--rule-2); font-size: 12px; }
+.vuln-list li:last-child { border-bottom: 0; }
+.vuln-list .vid { font-family: var(--mono); color: var(--suspect); font-weight: 600; font-size: 11px; }
+.vuln-list .vsum { display: block; color: var(--ink-2); margin-top: 2px; line-height: 1.4; }
+
 .iocs { margin-top: 18px; }
 .ioc-list { list-style: none; margin: 0; padding: 0; }
 .ioc-list li { display: grid; grid-template-columns: 70px 1fr; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--rule-2); font-size: 12px; align-items: baseline; }

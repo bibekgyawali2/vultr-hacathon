@@ -107,10 +107,27 @@
             </div>
             <p class="headline" id="headline">Awaiting detonation.</p>
             <div class="meter" aria-hidden="true"><span id="meterFill"></span></div>
+            <ul class="caps" id="caps" hidden></ul>
             <ul class="reasons" id="reasons"></ul>
+            <div class="attack" id="attackWrap" hidden>
+              <div class="panel-head mini"><h3>MITRE ATT&amp;CK</h3></div>
+              <ul class="attack-list" id="attack"></ul>
+            </div>
             <div class="iocs" id="iocsWrap" hidden>
               <div class="panel-head mini"><h3>Indicators</h3><button class="copy" id="copyIocs">copy</button></div>
               <ul class="ioc-list" id="iocs"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="intel-panel" id="intelPanel" hidden aria-label="Threat intelligence">
+          <div class="panel-head"><h2>Intelligence</h2><span class="agent-src" id="intelSrc"></span></div>
+          <div class="intel-body">
+            <div class="typo" id="typo" hidden></div>
+            <dl class="rep" id="rep"></dl>
+            <div class="vulns" id="vulnsWrap" hidden>
+              <div class="panel-head mini"><h3>Known vulnerabilities</h3><span class="count" id="vulnCount"></span></div>
+              <ul class="vuln-list" id="vulns"></ul>
             </div>
           </div>
         </div>
