@@ -8,7 +8,7 @@ contained and recorded.**
 Built for the Vultr **Agent Rush** hackathon, track **Blast Radius Zero**
 (containment-first). Live build Nov 3–8 2026.
 
-![Detonation Chamber — a malicious package caught and contained](.impeccable/review/desktop.png)
+![Detonation Chamber — a malicious package caught and contained](.impeccable/review/cover.png)
 
 ---
 
