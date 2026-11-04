@@ -25,6 +25,10 @@ to bait it, and reports what it did.
   event; the agent summary never overturns it.
 - Verifiable report. Each run exports JSON with the events, verdict, runtime,
   and a SHA-256 over the evidence.
+- Five signals, not one. Alongside behaviour, each run surfaces capability
+  badges, a MITRE ATT&CK mapping, package reputation (age, downloads, repo,
+  maintainers), known CVEs from OSV.dev, and typosquat detection; reputation
+  and typosquat fold into the score, the rest inform the analyst.
 
 ### Where the agent acts
 
