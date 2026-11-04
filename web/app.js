@@ -420,6 +420,10 @@ function renderFixture(name) {
     ["network","connect","registry.npmjs.org:443","ok",2,0.6],
     ["blocked","connect","185.220.101.44:443","blocked",3,0.8,{errno:"ENETUNREACH"}],
     ["blocked","connect","collector.exfil-demo.invalid:443","blocked",3,0.7,{errno:"EAI_AGAIN"}],
+    ["agent","note","agent investigating package source","ok",0,0.4],
+    ["agent","probe","grep(child_process|base64|eval)","ok",0,0.5,{why:"scan the source for shell-outs and obfuscation behind the postinstall"}],
+    ["process","static","postinstall.js: child_process, base64, eval(","ok",2,0.4,{static_risk:true,patterns:["child_process","base64","eval("]}],
+    ["agent","note","investigation complete: source confirms the exfiltration logic","ok",0,0.3],
   ];
   feedRaw('<span class="ps1">chamber@sandbox:~$</span> detonate npm:reqeusts-helper@2.1.4', "k-process");
   feedRaw('<span class="ft">[plan]</span> ' + $("agentPlan").textContent, "k-plan");
@@ -436,8 +440,9 @@ function renderFixture(name) {
     headline: "A postinstall script read planted credentials and tried to " +
       "phone home; the sandbox blocked every outbound connection.",
     reasons: [
-      "Read 3 planted canary credentials — benign installers never do this.",
+      "Read 3 planted canary credentials; benign installers never do this.",
       "Attempted 2 outbound connections that the sandbox blocked (contained; nothing left the machine).",
+      "Agent found high-risk code patterns in the source (base64, child_process, eval).",
     ],
     iocs: [
       { type: "credential", value: H + "/.aws/credentials", note: "canary credential accessed" },
