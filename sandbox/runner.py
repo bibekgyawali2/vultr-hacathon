@@ -229,12 +229,42 @@ def analyze_url() -> None:
     """Browse a URL from inside the disposable container. GET only, never
     submits anything, follows a bounded redirect chain, and reports every
     host it touches plus any credential-harvesting form it finds."""
+    import ipaddress
+    import socket
+    import urllib.error
     import urllib.request
     import urllib.parse
     from html.parser import HTMLParser
 
     url = os.environ.get("DC_NAME", "")
     ev("system", "note", f"opening {url} in isolated fetcher (GET only)")
+
+    def host_is_public(netloc: str):
+        """SSRF guard: refuse loopback, private, link-local (incl. cloud
+        metadata 169.254.169.254), reserved, and multicast targets. Every A/AAAA
+        record must be public."""
+        host = netloc.split("@")[-1].rsplit(":", 1)[0].strip("[]")
+        try:
+            infos = socket.getaddrinfo(host, None)
+        except Exception:  # noqa: BLE001
+            return False, "dns-resolution-failed"
+        for info in infos:
+            ip = info[4][0].split("%")[0]
+            try:
+                addr = ipaddress.ip_address(ip)
+            except ValueError:
+                continue
+            if (addr.is_private or addr.is_loopback or addr.is_link_local
+                    or addr.is_reserved or addr.is_multicast
+                    or addr.is_unspecified):
+                return False, f"non-public address {ip}"
+        return True, ""
+
+    class _NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, *a, **k):  # don't auto-follow; we validate each hop
+            return None
+
+    opener = urllib.request.build_opener(_NoRedirect)
 
     class Scan(HTMLParser):
         def __init__(self):
@@ -264,23 +294,49 @@ def analyze_url() -> None:
                 self._cur = None
 
     chain: list[str] = []
+    cur = url
     final = url
     body = ""
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "DetonationChamber/1.0"})
-        host = urllib.parse.urlparse(url).netloc
-        ev("network", "fetch", host, severity=1, op_detail="GET " + url)
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            final = resp.geturl()
+    for hop in range(6):
+        parts = urllib.parse.urlparse(cur)
+        if parts.scheme not in ("http", "https"):
+            ev("blocked", "fetch", cur[:120], result="blocked", severity=3,
+               detail={"refused": f"non-http scheme '{parts.scheme}'"})
+            break
+        ok, why = host_is_public(parts.netloc)
+        if not ok:
+            ev("blocked", "connect", parts.netloc, result="blocked", severity=3,
+               detail={"ssrf_refused": why})
+            break
+        ev("network", "fetch", parts.netloc, severity=1, detail={"GET": cur})
+        try:
+            req = urllib.request.Request(
+                cur, headers={"User-Agent": "DetonationChamber/1.0"}, method="GET")
+            resp = opener.open(req, timeout=20)
+            code = resp.getcode()
+            if code in (301, 302, 303, 307, 308):
+                loc = resp.headers.get("Location", "")
+                nxt = urllib.parse.urljoin(cur, loc)
+                ev("network", "connect", urllib.parse.urlparse(nxt).netloc or nxt,
+                   severity=2, detail={"redirected_to": nxt, "status": code})
+                chain.append(nxt)
+                cur = nxt
+                final = nxt
+                continue
+            final = resp.geturl() or cur
             body = resp.read(600_000).decode("utf-8", "replace")
-        if final != url:
-            fhost = urllib.parse.urlparse(final).netloc
-            ev("network", "connect", fhost, severity=2,
-               detail={"redirected_to": final})
-            chain.append(final)
-    except Exception as exc:  # noqa: BLE001
-        ev("blocked", "fetch", host if 'host' in dir() else url, result="error",
-           severity=2, detail={"error": str(exc)[:200]})
+            break
+        except urllib.error.HTTPError as he:  # 4xx/5xx still has a body to scan
+            final = cur
+            try:
+                body = he.read(600_000).decode("utf-8", "replace")
+            except Exception:  # noqa: BLE001
+                pass
+            break
+        except Exception as exc:  # noqa: BLE001
+            ev("blocked", "fetch", parts.netloc, result="error", severity=2,
+               detail={"error": str(exc)[:200]})
+            break
 
     scan = Scan()
     try:

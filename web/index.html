@@ -18,13 +18,22 @@
     </div>
     <dl class="status" id="status">
       <div><dt>chamber</dt><dd id="st-chamber">sealed</dd></div>
-      <div><dt>runtime</dt><dd id="st-runtime">—</dd></div>
-      <div><dt>egress</dt><dd id="st-egress">—</dd></div>
-      <div><dt>inference</dt><dd id="st-inference">—</dd></div>
+      <div><dt>runtime</dt><dd id="st-runtime">·</dd></div>
+      <div><dt>egress</dt><dd id="st-egress">·</dd></div>
+      <div><dt>inference</dt><dd id="st-inference">·</dd></div>
     </dl>
+    <nav class="topnav">
+      <a href="#about">How it works</a>
+      <a href="https://github.com/bibekgyawali2/vultr-hacathon" target="_blank" rel="noopener">GitHub ↗</a>
+    </nav>
   </header>
 
   <main>
+    <section class="intro" aria-label="What this is">
+      <h1>Detonate untrusted code. Watch what it does. Keep the blast inside.</h1>
+      <p>Paste a package, repo, or link you don't fully trust. Detonation Chamber runs it in a sealed, throwaway sandbox, records every file it reads and every address it reaches, and returns a verdict, with each escape attempt contained. <a href="#about">How it works ↓</a></p>
+    </section>
+
     <section class="console" aria-label="Submit an artifact">
       <form id="form" class="submit" autocomplete="off">
         <span class="kindtag" id="kindtag">auto</span>
@@ -59,10 +68,10 @@
         <div class="axis" id="axis"></div>
         <div class="strip-empty" id="stripEmpty">
           <p>The chamber is sealed and idle.</p>
-          <p class="sub">Submit an artifact to detonate it under observation. Events paint here as they happen — <span class="o">filesystem</span>, <span class="g">process</span>, <span class="b">network</span>, and anything the sandbox <span class="r">contains</span>.</p>
+          <p class="sub">Submit an artifact to detonate it under observation. Events paint here as they happen: <span class="o">filesystem</span>, <span class="g">process</span>, <span class="b">network</span>, and anything the sandbox <span class="r">contains</span>.</p>
         </div>
       </div>
-      <div class="synthetic-banner" id="synthBanner" hidden>SYNTHETIC REPLAY — labelled demo trace, not a live run</div>
+      <div class="synthetic-banner" id="synthBanner" hidden>SYNTHETIC REPLAY · labelled demo trace, not a live run</div>
     </section>
 
     <section class="lower">
@@ -74,7 +83,7 @@
 
       <aside class="verdict-col">
         <div class="verdict-panel" id="verdictPanel" data-label="pending">
-          <div class="panel-head"><h2>Verdict</h2><span class="count" id="riskScore">—</span></div>
+          <div class="panel-head"><h2>Verdict</h2><a class="report-btn" id="reportBtn" hidden download>↓ report</a><span class="count" id="riskScore">·</span></div>
           <div class="verdict-body">
             <div class="label-row">
               <span class="label-dot" id="labelDot"></span>
@@ -97,7 +106,72 @@
         </div>
       </aside>
     </section>
+
+    <section class="about" id="about" aria-label="How it works">
+      <div class="about-head">
+        <h2>What is Detonation Chamber?</h2>
+        <p>Installing a package, cloning a repo, or opening a link can silently run code that steals your credentials, phones home, or wipes files, and you only find out after the damage. A bomb squad doesn't guess whether a device is live; they put it in a containment vessel and watch. This does the same for software.</p>
+      </div>
+
+      <div class="steps">
+        <article class="step">
+          <span class="step-n">01</span>
+          <h3>Submit</h3>
+          <p>Paste an npm or PyPI package, a GitHub repo, or any URL. The artifact is fetched on the host and <em>never run there</em>.</p>
+        </article>
+        <article class="step">
+          <span class="step-n">02</span>
+          <h3>Detonate</h3>
+          <p>It runs inside a one-shot container with <em>no network route out</em>, a read-only disk, and dropped privileges, all isolated by gVisor. Fake "canary" credentials are planted as bait.</p>
+        </article>
+        <article class="step">
+          <span class="step-n">03</span>
+          <h3>Read the verdict</h3>
+          <p>Every file read and connection attempt is drawn on the scan strip in real time. You get a risk score, the indicators, and a verifiable report: benign, suspicious, or malicious.</p>
+        </article>
+      </div>
+
+      <div class="coverage">
+        <div class="coverage-head"><h3>What the chamber contains</h3><span>every one of these is enforced by the sandbox, not by trusting the code</span></div>
+        <ul class="cov-grid" id="covGrid">
+          <li data-k="file"><b>Secret theft</b><span>Canary AWS keys, SSH keys and tokens are planted and watched; any read is flagged.</span></li>
+          <li data-k="blocked"><b>Data exfiltration</b><span>Code-execution jobs get no network route, so every outbound connection fails and is logged.</span></li>
+          <li data-k="network"><b>Phishing pages</b><span>Credential forms posting cross-origin are caught; the page is browsed GET-only, never submitted.</span></li>
+          <li data-k="file"><b>Destructive commands</b><span><code>rm -rf /</code> and friends hit a read-only root filesystem and fail.</span></li>
+          <li data-k="process"><b>Fork bombs &amp; resource abuse</b><span>Hard process, memory, CPU and wall-clock limits kill runaway code.</span></li>
+          <li data-k="blocked"><b>Privilege escalation</b><span>All Linux capabilities dropped, <code>no-new-privileges</code>, gVisor kernel isolation.</span></li>
+          <li data-k="network"><b>SSRF &amp; metadata theft</b><span>Private, loopback and link-local targets (incl. <code>169.254.169.254</code>) are refused on every redirect.</span></li>
+          <li data-k="process"><b>Prompt injection</b><span>Fetched page content enters as inert data; there is nothing in the sandbox for it to act on.</span></li>
+        </ul>
+      </div>
+
+      <div class="about-cols">
+        <div class="ac">
+          <h3>Who it's for</h3>
+          <ul>
+            <li>AppSec &amp; SOC analysts triaging a reported package or link, who need defensible evidence for a ticket.</li>
+            <li>Developers vetting a dependency before <code>npm install</code>, who want a two-second yes/no with reasons.</li>
+            <li>CI pipelines gating new or updated dependencies before they reach a build.</li>
+          </ul>
+        </div>
+        <div class="ac">
+          <h3>Under the hood</h3>
+          <ul>
+            <li><b>gVisor (runsc)</b> for kernel-level isolation; one disposable container per job.</li>
+            <li><b><code>strace</code></b> records real filesystem, process and network syscalls: behaviour, not guesswork.</li>
+            <li><b>Vultr Cloud Compute</b> hosts the app and runs every sandbox.</li>
+            <li><b>Vultr Serverless Inference</b> writes the analysis plan and the plain-English verdict.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <footer class="footer">
+    <span>Detonation Chamber</span>
+    <span>Built on Vultr · Agent Rush · Blast Radius Zero</span>
+    <a href="https://github.com/bibekgyawali2/vultr-hacathon" target="_blank" rel="noopener">source ↗</a>
+  </footer>
 
   <div class="event-detail" id="eventDetail" hidden aria-live="polite"></div>
   <script src="/app.js"></script>
