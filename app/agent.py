@@ -18,7 +18,7 @@ import httpx
 
 BASE = os.environ.get("VULTR_INFERENCE_BASE", "https://api.vultrinference.com/v1")
 API_KEY = os.environ.get("VULTR_INFERENCE_API_KEY", "")
-MODEL = os.environ.get("VULTR_INFERENCE_MODEL", "llama-3.3-70b-instruct-fp8")
+MODEL = os.environ.get("VULTR_INFERENCE_MODEL", "deepseek-v4.1-flash-1017")
 
 SYSTEM = (
     "You are the reasoning layer of Detonation Chamber, a malware-analysis "

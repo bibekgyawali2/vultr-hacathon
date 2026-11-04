@@ -150,7 +150,7 @@ curl -s https://api.vultrinference.com/v1/models \
   -H "Authorization: Bearer $VULTR_INFERENCE_API_KEY" | jq '.data[].id'
 ```
 
-Default: `llama-3.3-70b-instruct-fp8`.
+Default: `deepseek-v4.1-flash-1017`.
 
 ## Project layout
 
