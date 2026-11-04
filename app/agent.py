@@ -50,7 +50,12 @@ async def _chat(prompt: str, max_tokens: int = 220) -> str:
         )
         resp.raise_for_status()
         data = resp.json()
-        return data["choices"][0]["message"]["content"].strip()
+        msg = data["choices"][0]["message"]
+        # Some models place prose in reasoning_content and leave content empty.
+        text = (msg.get("content") or msg.get("reasoning_content") or "").strip()
+        if not text:
+            raise ValueError("empty completion")  # -> caller falls back
+        return text
 
 
 async def plan(target) -> str:
@@ -75,7 +80,7 @@ async def plan(target) -> str:
         return await _chat(
             f"In 1-2 sentences, state the analysis plan for a {desc}. "
             f"Describe what you will run in the sandbox and what behaviours you "
-            f"will watch for. No preamble.", max_tokens=120)
+            f"will watch for. No preamble.", max_tokens=256)
     except Exception:
         return "Detonate in the sandbox and observe file, process, and network behaviour."
 
