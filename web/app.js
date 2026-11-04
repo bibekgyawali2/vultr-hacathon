@@ -83,6 +83,7 @@ $("form").addEventListener("submit", async (e) => {
     pushLog({ kind: "blocked", op: "error", target: String(err), result: "error", ts: 0, severity: 2 });
     return;
   }
+  state.jobId = job.job_id;
   if (job.synthetic) $("synthBanner").hidden = false;
   openStream(job.job_id);
 });
@@ -122,6 +123,7 @@ function resetRun() {
   $("log").innerHTML = ""; $("logcount").textContent = "0";
   $("reasons").innerHTML = ""; $("iocs").innerHTML = "";
   $("iocsWrap").hidden = true; $("synthBanner").hidden = true;
+  $("reportBtn").hidden = true;
   $("stripEmpty").style.display = "none";
   $("agentSummary").hidden = true; $("agentPlan").textContent = "Planning…";
   $("eventDetail").hidden = true;
@@ -240,6 +242,11 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape") clearSelec
 function renderVerdict(v) {
   const vp = $("verdictPanel");
   vp.dataset.label = v.label;
+  if (state.jobId) {
+    const rb = $("reportBtn");
+    rb.href = `/api/report/${state.jobId}`;
+    rb.hidden = false;
+  }
   $("labelText").textContent = v.label;
   $("riskScore").textContent = `risk ${v.score}/100`;
   $("headline").textContent = v.headline;
@@ -280,6 +287,7 @@ function renderFixture(name) {
   setStatus("st-inference", "Vultr", "good");
   setStatus("st-chamber", "armed", "good");
   resetRun();
+  state.jobId = "demo";
   $("synthBanner").hidden = false;
   $("kindtag").textContent = "npm"; $("kindtag").dataset.k = "npm";
   $("target").value = "npm:reqeusts-helper@2.1.4";

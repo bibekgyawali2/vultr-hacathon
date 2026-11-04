@@ -51,6 +51,18 @@ async def detonate(req: DetonateReq):
             "synthetic": job.synthetic}
 
 
+@app.get("/api/report/{job_id}")
+async def report(job_id: str):
+    job = manager.get(job_id)
+    if not job:
+        raise HTTPException(404, "unknown job")
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        job.report(),
+        headers={"Content-Disposition":
+                 f'attachment; filename="detonation-{job_id}.json"'})
+
+
 @app.get("/api/stream/{job_id}")
 async def stream(job_id: str):
     job = manager.get(job_id)

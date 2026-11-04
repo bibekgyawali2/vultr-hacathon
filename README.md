@@ -27,6 +27,22 @@ containment event *is* the evidence.
   leaves the machine, even if the verdict is wrong.
 - **Evidence-first verdict.** Every point of the 0–100 risk score traces to a
   concrete observed event; the agent's summary may never overturn it.
+- **Verifiable run record.** Every run exports a JSON report carrying the full
+  event list, the verdict, the sandbox runtime, `sandbox_destroyed`, and a
+  SHA-256 over the evidence so a report can't be silently edited (`↓ report`).
+
+### What the chamber contains (all enforced, not assumed)
+
+| Threat | Containment |
+|--------|-------------|
+| Secret theft | Canary AWS/SSH/token files planted and watched |
+| Data exfiltration | `--network none`; every egress attempt fails and is logged |
+| Phishing pages | Cross-origin credential forms flagged; browsed GET-only, never submitted |
+| Destructive commands | Read-only root filesystem |
+| Fork bombs / resource abuse | pids, memory, CPU and wall-clock limits |
+| Privilege escalation | `--cap-drop ALL`, `no-new-privileges`, gVisor |
+| SSRF / metadata theft | Private, loopback and link-local targets (incl. `169.254.169.254`) refused on every redirect |
+| Prompt injection | Fetched page content enters as inert data |
 
 ## The containment moment (for the demo video)
 
@@ -133,6 +149,12 @@ sudo systemctl restart detonation-chamber
 # open http://127.0.0.1:8000
 ```
 
+### Tests
+
+```bash
+python tests/test_core.py   # target parsing, verdict scoring per demo trace, report hash
+```
+
 ### Containerized (alternative)
 
 ```bash
@@ -170,7 +192,8 @@ deploy/       setup-vultr.sh · Dockerfile · docker-compose.yml · .env.example
 ## Judging alignment
 
 - **Application of Technology** — real OS-level behavioural analysis (`strace`),
-  gVisor isolation, fail-closed networking, canary baiting, Vultr inference.
+  gVisor isolation, fail-closed networking, canary baiting, SSRF defence,
+  a hash-verifiable run record, a test suite, and Vultr inference.
 - **Business Value** — supply-chain triage, dependency vetting before merge, and
   phishing-URL analysis for a SOC, in one console.
 - **Originality** — containment is the feature, not a checkbox; the X-ray
